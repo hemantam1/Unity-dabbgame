@@ -4,8 +4,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using SaveConstantVal;
 using System.Linq;
-using Sfs2X.Entities.Data;
-using Sfs2X.Entities;
 
 public class GameManager : MonoBehaviour
 {
@@ -712,10 +710,10 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        Login(SystemInfo.deviceUniqueIdentifier, SelectGender.ToString(), PlayAsGuest_playername.text);
         //PlayerPrefs.SetString(ApiConstant.playerName_1, PlayAsGuest_playername.text);
         //PlayerPrefs.SetString("TempPlayerName", PlayAsGuest_playername.text);
         playarea_SCript.PlayArea_Name_Set();
+         AfterLogin();
         ButtonClickSound();
     }
 
@@ -737,42 +735,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    void Login(string userId, string avatarurl, string userName)
-    {
-        SFS.Connect(() =>
-        {
-            SFS.Login(userId, "", "DabbZone", () =>
-            {
-                SFSObject obj = new SFSObject();
-                obj.PutUtfString("userName", userName);
-                obj.PutUtfString("avatarurl", avatarurl);
-                obj.PutUtfString("userId", userId);
-                SFS.SendExtensionRequest("OnLogin", obj);
-
-            }, (string error) => { });
-        }, (string error) => { });
-    }
-
-    void OnEnable()
-    {
-        SFS.ExtensionResponseReceived += OnExtensionResponseRecieved;
-    }
-
-    void OnDisable()
-    {
-        SFS.ExtensionResponseReceived -= OnExtensionResponseRecieved;
-    }
-
-    void OnExtensionResponseRecieved(string cmd, SFSObject dataObject, Room room)
-    {
-        switch (cmd)
-        {
-            case "OnLogin":
-                Debug.Log(dataObject);
-                AfterLogin();
-                break;
-        }
-    }
+    
 
     public void Continue_Login_with_insttttt()
     {
