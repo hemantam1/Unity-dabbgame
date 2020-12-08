@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: PhotonServerSettings
   m_EditorClassIdentifier: 
   AppSettings:
-    AppIdRealtime: 1d556be8-ed4e-4c1a-b013-b9ef7d540361
+    AppIdRealtime: 535c21ec-1700-4357-9d49-077232e33c99
     AppIdChat: 5fd72ad3-e0b7-4b90-916f-6f39764b2539
     AppIdVoice: 
     AppVersion: 
@@ -27,12 +27,38 @@ MonoBehaviour:
     AuthMode: 0
     EnableLobbyStatistics: 0
     NetworkLogging: 1
-  DevRegion: asia
+  DevRegion: au
   PunLogging: 0
   EnableSupportLogger: 0
   RunInBackground: 1
   StartInOfflineMode: 0
-  RpcList: []
+  RpcList:
+  - ClickRpc
+  - DestroyRpc
+  - DestroySpaceship
+  - Fire
+  - RespawnSpaceship
+  - AnimationPlay
+  - CallSkipMethodDisplay
+  - CardRandomValIs
+  - changePoss
+  - CloaseBlack
+  - DicevalSet_Multiplayer
+  - emmosjiesno
+  - messagesend
+  - OpenAlertCardWithMsg
+  - PlayerMove_multi
+  - PutBakPoss
+  - Ques_Multiplayer
+  - RollForPlayer
+  - SafeZone_Multiplayer
+  - SetNameMulti
+  - Skip_Multiplayer
+  - SkipOnePlayerTurn
+  - Skipppp
+  - TurnPass_Multiplayer
+  - Undo_multiplayer
+  - Recieve_DisplaySkipM
   DisableAutoOpenWizard: 1
   ShowSettings: 1
-  DevRegionSetOnce: 0
+  DevRegionSetOnce: 1

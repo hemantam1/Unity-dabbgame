@@ -7,3 +7,8 @@ EditorBuildSettings:
   m_Scenes:
   - enabled: 1
     path: Assets/_Scene/Dabb Game.unity
+    guid: 4f31f2e4ccd504c8cbbf0070b447804e
+  - enabled: 1
+    path: Assets/_Scene/GamePlay.unity
+    guid: 45c86db71df534543bcd6b88eaee8bb0
+  m_configObjects: {}

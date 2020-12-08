@@ -5,8 +5,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-
-
 public class PlayerManager : MonoBehaviour
 {
     [HideInInspector] public Vector3 savePinVal;
@@ -35,29 +33,23 @@ public class PlayerManager : MonoBehaviour
         savePinVal = transform.position;
     }
 
-
-    void Update()
-    {
-
-    }
-
     public void Move_Click()
     {
-        print("asdjalksjdlkajskljdaklsjdklj");
+        print("Move_Click()");
         //		StopCoroutine (Playarea.instt.he ());
+        if (Playarea.instt.a != null)
+            StopCoroutine(Playarea.instt.a);
 
-        StopCoroutine(Playarea.instt.a);
         Playarea.instt.StopCorutineFunction();
         //		StopAllCoroutines ();
         Playarea.instt.Anim.enabled = false;
         Playarea.instt.CountDown_Image.SetActive(false);
-        Playarea.instt.abc = false;
         Playarea.instt.CancelInvoke("Player1_AI");
         Playarea.instt.CancelInvoke("Player2_AI");
         Playarea.instt.CancelInvoke("Player3_AI");
         Playarea.instt.CancelInvoke("Player4_AI");
 
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+        if (FST_Gameplay.IsMultiplayer)
         {
             if (IsPutBackTime)
             {
@@ -554,7 +546,7 @@ public class PlayerManager : MonoBehaviour
     void Check_Winner()
     {
         int idd = 0;
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+        if (FST_Gameplay.IsMultiplayer)
         {
             string pid = "1";
             //string pid = (string)PhotonNetwork.player.CustomProperties["save_indx"];
@@ -639,7 +631,7 @@ public class PlayerManager : MonoBehaviour
     {
         string PlayerNo;
         int indx = 0;
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+        if (FST_Gameplay.IsMultiplayer)
         {
             //PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
             PlayerNo = "1";
@@ -656,7 +648,7 @@ public class PlayerManager : MonoBehaviour
                 Playarea.instt.switchPlayer_no1 = Pno;
                 Playarea.instt.switch_indx1 = Position;
 
-                if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+                if (FST_Gameplay.IsMultiplayer)
                 {
 
                     if (PlayerIndex == indx)
@@ -692,7 +684,7 @@ public class PlayerManager : MonoBehaviour
                         break;
                 }
                 Playarea.instt.switch_indx1 = putBackk;
-                if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+                if (FST_Gameplay.IsMultiplayer)
                 {
 
                     if (indx == Playarea.instt.playerTurn + 1)
@@ -714,7 +706,7 @@ public class PlayerManager : MonoBehaviour
             case 3:
 
                 //============= 3  ===== skip player turn =============
-                if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+                if (FST_Gameplay.IsMultiplayer)
                 {
 
                     if (PlayerIndex == indx)
@@ -769,7 +761,7 @@ public class PlayerManager : MonoBehaviour
             case 4:
                 //================ 4 ======== roll agin =======
 
-                if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+                if (FST_Gameplay.IsMultiplayer)
                 {
 
                     if (PlayerIndex == indx)
@@ -810,16 +802,8 @@ public class PlayerManager : MonoBehaviour
                 //===============================
                 break;
         }
-        //=======
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
-        {
-            Playarea.instt.GenerateRandomVal_Card();
-        }
-        else
-        {
-            Playarea.instt.GenerateRandomVal_Card();
-        }
-        //=======
+
+        Playarea.instt.GenerateRandomVal_Card();
 
     }
 

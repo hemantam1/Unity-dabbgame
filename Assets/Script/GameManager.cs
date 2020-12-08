@@ -4,118 +4,122 @@ using UnityEngine;
 using UnityEngine.UI;
 using SaveConstantVal;
 using System.Linq;
+using Multiplayer;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
-    [HideInInspector]
+    //[HideInInspector]
     public Image playerInfoImg;
-    [HideInInspector]
+    //[HideInInspector]
     public Text[] Playerinfo;
-    [HideInInspector]
+    //[HideInInspector]
     public ChooseLevel chooseLvL;
     public Image[] PlayerImg;
-    [HideInInspector]
+    //[HideInInspector]
     public GameObject Msg_BackToLevl;
-    [HideInInspector]
+    //[HideInInspector]
     public Text Msg_BackToLevl_Tx;
-    [HideInInspector]
+    //[HideInInspector]
     public Text ContinueWithFBTx;
-    [HideInInspector]
+    //[HideInInspector]
     public Text[] PlayerGoldTx;
-    [HideInInspector]
+    //[HideInInspector]
     public Image ChooseLevel_PlayerImg;
-    [HideInInspector]
+    //[HideInInspector]
     public static GameManager instt;
-    [HideInInspector]
+    //[HideInInspector]
     public GameObject enterCodeObj;
-    [HideInInspector]
+    //[HideInInspector]
     public GameObject messageDisplay;
-    [HideInInspector]
+    //[HideInInspector]
     public Text MsgText;
-    [HideInInspector]
+    //[HideInInspector]
     public Sprite femaleImg, maleImg;
-    [HideInInspector]
+    //[HideInInspector]
     public Image playerImg;
-    [HideInInspector]
+    //[HideInInspector]
     public Text PlayAsGuest_playername;
-    [HideInInspector]
+    //[HideInInspector]
     public Button male, female;
-    [HideInInspector]
+    //[HideInInspector]
     public Playarea playarea_SCript;
-    [HideInInspector]
+    //[HideInInspector]
     public GameObject environment_obj;
-    [HideInInspector]
+    //[HideInInspector]
     public GameObject gameWin;
-    [HideInInspector]
+    //[HideInInspector]
     public Text gameWinnerIS;
-    [HideInInspector]
+    //[HideInInspector]
     public GameObject celebrityOBJ;
-    [HideInInspector]
+    //[HideInInspector]
     public GameObject playerInfo;
-    [HideInInspector]
+    //[HideInInspector]
     public GameObject emojiObj;
-    [HideInInspector]
+    //[HideInInspector]
     public GameObject playarea;
-    [HideInInspector]
+    //[HideInInspector]
     public GameObject characterPurObj;
-    [HideInInspector]
+    //[HideInInspector]
     public GameObject dicePurObj;
-    [HideInInspector]
+    //[HideInInspector]
     public GameObject storeObj;
-    [HideInInspector]
+    //[HideInInspector]
     public GameObject settingObj;
-    [HideInInspector]
+    //[HideInInspector]
     public GameObject luckDiceObj;
-    [HideInInspector]
+    //[HideInInspector]
     public GameObject chatRoomObj;
-    [HideInInspector]
+    //[HideInInspector]
     public GameObject videoWatchObj;
-    [HideInInspector]
+    //[HideInInspector]
     public GameObject loginType;
-    [HideInInspector]
+    //[HideInInspector]
     public GameObject loginWithFB;
-    [HideInInspector]
+    //[HideInInspector]
     public GameObject celebrityLogin;
-    [HideInInspector]
+    // //[HideInInspector]
     public GameObject guestLogin;
-    [HideInInspector]
+    //[HideInInspector]
     public GameObject chooseLevel;
-    [HideInInspector]
+    //[HideInInspector]
     public GameObject privateTable;
-    [HideInInspector]
+    //[HideInInspector]
     public GameObject playOffline;
-    [HideInInspector]
+    //[HideInInspector]
     public GameObject goldPurchase;
-    [HideInInspector]
+    //[HideInInspector]
     public GameObject splashScreen;
-    [HideInInspector]
+    //[HideInInspector]
     public int SelectGender;
-    [HideInInspector]
+    //[HideInInspector]
     public bool IsPrivateTableCreat;
-    [HideInInspector]
+    //[HideInInspector]
     public int PrivateTableVal;
-    [HideInInspector]
+    //[HideInInspector]
     public int LoginTypeNo;
-    [HideInInspector]
+    //[HideInInspector]
     public Image OfflinePanel;
 
-    [HideInInspector]
+    //[HideInInspector]
     public Sprite[] splashAnim;
-    [HideInInspector]
+    //[HideInInspector]
     public Image spashscreenImg;
 
-    [HideInInspector]
+    //[HideInInspector]
     public string FacebookProfileLik;
-    [HideInInspector]
+    //[HideInInspector]
     public string InstProfileLik;
 
     //	public Playarea pa;
 
     int ct_splash;
 
-    [HideInInspector]
+    //[HideInInspector]
     public bool play_offline = false;
 
+    public delegate void OneVsOnematch();
+    public static event OneVsOnematch StartOneVsOnematch;
     void Awake()
     {
         //		PlayerPrefs.DeleteAll ();
@@ -132,7 +136,7 @@ public class GameManager : MonoBehaviour
             //			PlayerPrefs.SetInt (ApiConstant.CurrentEnvironment, 2);
             PlayerPrefs.SetInt(ApiConstant.CurrentEnvironment, 1);  // Vishal Change
         }
-        PlayerPrefs.SetInt(ApiConstant.multiplayerGame, 0);
+        FST_Gameplay.IsMultiplayer = false;
 
         Set_Player_Gold_tx();
 
@@ -157,11 +161,6 @@ public class GameManager : MonoBehaviour
     public void Cloase_Msg_alert()
     {
         messageDisplay.SetActive(false);
-    }
-
-    void Update()
-    {
-
     }
 
     public bool Check_Internet_connection()
@@ -368,7 +367,7 @@ public class GameManager : MonoBehaviour
     int PlayerTotalMatchCheck()
     {
         int TotalMatchIS = 0;
-        if (PlayerPrefs.GetInt(ApiConstant.Total_Match) != null)
+        if (PlayerPrefs.HasKey(ApiConstant.Total_Match))
         {
             TotalMatchIS = PlayerPrefs.GetInt(ApiConstant.Total_Match);
         }
@@ -382,7 +381,7 @@ public class GameManager : MonoBehaviour
     int PlayerTotalWinCheck()
     {
         int TotalWinMatchIS = 0;
-        if (PlayerPrefs.GetInt(ApiConstant.No_of_time_win) != null)
+        if (PlayerPrefs.HasKey(ApiConstant.No_of_time_win))
         {
             TotalWinMatchIS = PlayerPrefs.GetInt(ApiConstant.No_of_time_win);
         }
@@ -408,12 +407,12 @@ public class GameManager : MonoBehaviour
     {
         ButtonClickSound();
 
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+        if (FST_Gameplay.IsMultiplayer)
         {
             //PhotonNetwork.Disconnect ();
         }
         ApiConstant.OneTimeCall = false;
-        Application.LoadLevel("Dabb Game");
+        SceneManager.LoadScene("Dabb Game");
     }
 
     public void Player_Playoffline_click()
@@ -421,8 +420,7 @@ public class GameManager : MonoBehaviour
         play_offline = true;
         playarea_SCript.IsPrivateTable_with_create_room = false;
         playarea_SCript.IsPrivateTable = false;
-        //playarea_SCript.GetComponent<ConnectAndJoinRandom> ().enabled = false;
-        playarea_SCript.letsPlay = true;
+        Playarea.GameStarted = true;
         ButtonClickSound();
         playarea_SCript.Set_player_name();
         playarea_SCript.num_of_Player_is = PlayerPrefs.GetInt(ApiConstant.offlinePlayerSelection) - 1;
@@ -445,7 +443,7 @@ public class GameManager : MonoBehaviour
         playarea_SCript.WaitScreenObj.SetActive(true);
         //playarea_SCript.GetComponent<ConnectAndJoinRandom> ().enabled = true;
         PlayerPrefs.SetInt(ApiConstant.num_of_player_room_is, 2);
-        PlayerPrefs.SetInt(ApiConstant.multiplayerGame, 1);
+        FST_Gameplay.IsMultiplayer = true;
         playarea_SCript.num_of_Player_is = 1;
         ButtonClickSound();
         BackgroundPlay();
@@ -472,7 +470,7 @@ public class GameManager : MonoBehaviour
         playarea_SCript.WaitScreenObj.SetActive(true);
         //playarea_SCript.GetComponent<ConnectAndJoinRandom> ().enabled = true;
         PlayerPrefs.SetInt(ApiConstant.num_of_player_room_is, 4);
-        PlayerPrefs.SetInt(ApiConstant.multiplayerGame, 1);
+        FST_Gameplay.IsMultiplayer = true;
         playarea_SCript.num_of_Player_is = 3;
         ButtonClickSound();
         BackgroundPlay();
@@ -487,19 +485,19 @@ public class GameManager : MonoBehaviour
             messageDisplay.SetActive(true);
             return;
         }
-        if (!chooseLvL.Check1_vs_1_bidAmot())
-        {
-            return;
-        }
-        //PhotonNetwork.LeaveRoom ();
+        // if (!chooseLvL.Check1_vs_1_bidAmot())
+        // {
+        //     return;
+        // }
+        StartOneVsOnematch?.Invoke();
 
         playarea_SCript.IsPrivateTable_with_create_room = false;
         playarea_SCript.IsPrivateTable = false;
 
         playarea_SCript.WaitScreenObj.SetActive(true);
-        //playarea_SCript.GetComponent<ConnectAndJoinRandom> ().enabled = true;
+        // playarea_SCript.GetComponent<ConnectAndJoin> ().enabled = true;
         PlayerPrefs.SetInt(ApiConstant.num_of_player_room_is, 2);
-        PlayerPrefs.SetInt(ApiConstant.multiplayerGame, 1);
+        FST_Gameplay.IsMultiplayer = true;
         playarea_SCript.num_of_Player_is = 1;
         ButtonClickSound();
         BackgroundPlay();
@@ -518,9 +516,10 @@ public class GameManager : MonoBehaviour
         //PhotonNetwork.LeaveRoom ();
         playarea_SCript.IsPrivateTable = false;
         playarea_SCript.WaitScreenObj.SetActive(true);
-        //playarea_SCript.GetComponent<ConnectAndJoinRandom> ().enabled = true;
+        NetworkManager.instance.TwoVsTwo();
+
         PlayerPrefs.SetInt(ApiConstant.num_of_player_room_is, 4);
-        PlayerPrefs.SetInt(ApiConstant.multiplayerGame, 1);
+        FST_Gameplay.IsMultiplayer = true;
         playarea_SCript.num_of_Player_is = 3;
         ButtonClickSound();
         BackgroundPlay();
@@ -531,7 +530,12 @@ public class GameManager : MonoBehaviour
     public void SpashScreen()
     {
         splashScreen.SetActive(false);
-        loginType.SetActive(true);
+        if (!PlayerPrefs.HasKey("TempPlayerName"))
+            loginType.SetActive(true);
+        else
+        {
+            AfterLogin();
+        }
     }
 
     public void Buy_Dice_click()
@@ -710,10 +714,10 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        //PlayerPrefs.SetString(ApiConstant.playerName_1, PlayAsGuest_playername.text);
-        //PlayerPrefs.SetString("TempPlayerName", PlayAsGuest_playername.text);
+        PlayerPrefs.SetString(ApiConstant.playerName_1, PlayAsGuest_playername.text);
+        PlayerPrefs.SetString("TempPlayerName", PlayAsGuest_playername.text);
         playarea_SCript.PlayArea_Name_Set();
-         AfterLogin();
+        AfterLogin();
         ButtonClickSound();
     }
 
@@ -735,7 +739,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    
+
 
     public void Continue_Login_with_insttttt()
     {
@@ -898,12 +902,11 @@ public class GameManager : MonoBehaviour
 
     public void Close_BackToLevel()
     {
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+        if (FST_Gameplay.IsMultiplayer)
         {
             //PhotonNetwork.Disconnect ();
         }
-        Application.LoadLevel("Dabb Game");
-
+        SceneManager.LoadScene("Dabb Game");
     }
 
     //	[MenuItem ("Tools/Clear PlayerPref")]

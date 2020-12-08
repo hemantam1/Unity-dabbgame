@@ -20,11 +20,6 @@ public class LuckyDice : MonoBehaviour
 		PressCount = 0;
 	}
 
-	void Update ()
-	{
-		
-	}
-
 	public void PlayNow ()
 	{
 		

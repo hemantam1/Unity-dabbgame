@@ -42,25 +42,28 @@ public class Soundmanager : MonoBehaviour
 		jump.Play ();
 	}
 
-	public void Play_Bg_music ()
-	{
-		switch (PlayerPrefs.GetInt (ApiConstant.CurrentEnvironment)) {
-		case 2: // rain
-			bgMusic.clip = BGsound [0];
-			break;
-		case 4:// dasert
-			bgMusic.clip = BGsound [1];
-			break;
-		default:
-			bgMusic.clip = BGsound [2];
-			break;
-		}
-		bgMusic.Play ();
+    public void Play_Bg_music()
+    {
+        switch (PlayerPrefs.GetInt(ApiConstant.CurrentEnvironment))
+        {
+            case 2: // rain
+                bgMusic.clip = BGsound[0];// ?? null;
+                break;
+            case 4:// dasert
+                bgMusic.clip = BGsound[1];//?? null;
+                break;
+            default:
+                bgMusic.clip = BGsound[2];//?? null;
+                break;
+        }
+        bgMusic.Play();
 
-	}
+    }
 
 	public void Kill_Opponent ()
 	{
+        if (!KillOpponent)
+            return;
 		KillOpponent.Play ();
 	}
 

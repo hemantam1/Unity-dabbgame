@@ -19,12 +19,6 @@ public class PlayOffline : MonoBehaviour
 		selectName.SetActive (false);
 	}
 
-	void Update ()
-	{
-		
-
-	}
-
 	public void Select_1_player ()
 	{
 		PlayerPrefs.SetInt (ApiConstant.offlinePlayerSelection, 1);

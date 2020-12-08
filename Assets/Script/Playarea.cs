@@ -3,6 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Photon.Pun;
+using Photon.Pun.UtilityScripts;
+using Photon.Realtime;
 
 ////  1 - green  , 2 - red , 3 - yellow  , 4 - blue
 
@@ -72,7 +75,6 @@ public class Playarea : MonoBehaviour
     int undo_player3;
     int undo_player4;
 
-    [HideInInspector] public bool letsPlay;
     [HideInInspector] public bool isStopAnim;
     [HideInInspector] public bool TurnPass_multiplayer;
     [HideInInspector] public bool IsPrivateTable;
@@ -108,7 +110,7 @@ public class Playarea : MonoBehaviour
         }
     }
 
-    void OnDesable()
+    void OnDisable()
     {
         if (!this.gameObject.activeSelf)
         {
@@ -125,7 +127,6 @@ public class Playarea : MonoBehaviour
         {
             GenerateRandomVal_Card();
         }
-
 
         skip_player1 = 4;
         skip_player2 = 4;
@@ -163,139 +164,106 @@ public class Playarea : MonoBehaviour
         }
     }
 
-    private float CoolDown = 5.0f;
-    private float TimeToChange = 3;
-    public bool _TimeOver = false;
-    public bool abc = true;
-
+    private float m_TimeToChange = 3;
+    public static bool GameStarted { get; set; } = false;
     void Update()
     {
-        //		if (TimeToChange > 0) {
-        //			TimeToChange -= Time.deltaTime;
-        ////			print ("Time To Change  " + TimeToChange);
-        //		}
-        //
-        //		if (TimeToChange < 0) {
-        //			TimeToChange = 0;
-        //			_TimeOver = true;
-        //		}
-        //
-        //		if (_TimeOver) {
-        //			_TimeOver = false;
-        //
-        //			print ("Player Turn Value " + playerTurnValue);
-        //			print ("Invokecanvel : " + abc);
-        //			if (abc) {
-        //				print ("askjdkalsjkdjalksjdklajskldjaklsjdklj");
-        //				switch (playerTurnValue) {
-        //				case 0:
-        //					Invoke ("Player1_AI", 0f);
-        //					break;
-        //
-        //				case 1:
-        //					Invoke ("Player2_AI", 0f);
-        //					break;
-        //
-        //				case 2:
-        //					Invoke ("Player3_AI", 0f);
-        //					break;
-        //
-        //				case 3:
-        //					Invoke ("Player4_AI", 0f);
-        //					break;
-        //				}
-        //			}
-        //			PassTurn ();
-        //			Multi_Manager.inst.Multiplayer_turn_pass ();
-        //		}
+        if (!FST_Gameplay.IsMaster)//because we are doing timer here, this should only happen on master, moreso, we shpuld make a PROPER timer based on custom room props, saving issues when master handovers occur
+            return;
 
+        if (!GameStarted)
+            return;
+
+        if (m_TimeToChange > 0)
+        {
+            m_TimeToChange -= Time.deltaTime;
+            //			print ("Time To Change  " + TimeToChange);
+            return;
+        }
+
+        if (m_TimeToChange < 30)
+            m_TimeToChange = 30;
+
+        Debug.LogFormat("Player{0}_AI()", playerTurn);
+
+        switch (playerTurn)
+        {
+            case 0:
+                Player1_AI();
+                break;
+
+            case 1:
+                Player2_AI();
+                break;
+
+            case 2:
+                Player3_AI();
+                break;
+
+            case 3:
+                Player4_AI();
+                break;
+        }
+
+        PassTurn();
     }
 
     public void Check_AnyPlayer_is_Disconnected_form_Game()
     {
-        switch (playerTurn)
-        {
-            case 0:
-                if (IsPlayer_1_disconnected)
-                {
-                    PassTurn();
-                }
-                break;
-            case 1:
-                if (IsPlayer_2_disconnected)
-                {
-                    PassTurn();
-                }
-                break;
-            case 2:
-                if (IsPlayer_3_disconnected)
-                {
-                    PassTurn();
-                }
-                break;
-            case 3:
-                if (IsPlayer_4_disconnected)
-                {
-                    PassTurn();
-                }
-                break;
-        }
+        if ((playerTurn == 0 && IsPlayer_1_disconnected)
+            || (playerTurn == 1 && IsPlayer_2_disconnected)
+            || (playerTurn == 2 && IsPlayer_3_disconnected)
+            || (playerTurn == 3 && IsPlayer_4_disconnected))
+
+            PassTurn();
     }
 
     //========== Dice Anim play =========
     public void Dice_Click()
     {
-        //=== multiplayer 
-        //---------Vishal Code For Dice Highliting-------
+        if (!GameStarted)
+            return;
 
         PlayerDiceAnim.SetActive(false);
 
-        //------------------ End Code
-
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+        if (FST_Gameplay.IsMultiplayer)
         {
-
             if (!GameManager.instt.Check_Internet_connection())
             {
                 GameManager.instt.messageDisplay.SetActive(true);
                 return;
             }
 
-            //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
-            string PlayerNo = "1";
-            int indx = int.Parse(PlayerNo);
+            if (IsMyTurn)
+                Multi_Manager.inst.MultiplayerDiceClicked();
 
-            if (letsPlay && indx == playerTurn + 1)
-            {
-                Multi_Manager.inst.MultiplayerAnimationPlay();
-                isStopAnim = false;
-                TurnPass_multiplayer = false;
-                Soundmanager.instance.Play_DiceRollSound();
-                for (int i = 0; i < 4; i++)
-                {
-                    Skip_BT[i].SetActive(false);
-                }
-                Dicebt.enabled = false;
-                StartCoroutine(PlayDiceAnim());
-            }
+            return;
         }
-        else
+
+        // ===== normal player ======
+        Soundmanager.instance.Play_DiceRollSound();
+        for (int i = 0; i < 4; i++)
         {
-
-            // ===== normal player ======
-            if (letsPlay)
-            {
-
-                Soundmanager.instance.Play_DiceRollSound();
-                for (int i = 0; i < 4; i++)
-                {
-                    Skip_BT[i].SetActive(false);
-                }
-                Dicebt.enabled = false;
-                StartCoroutine(PlayDiceAnim());
-            }
+            Skip_BT[i].SetActive(false);
         }
+        Dicebt.enabled = false;
+        StartCoroutine("PlayDiceAnim");
     }
+
+    public void ReceiveDiceClick()
+    {
+        isStopAnim = false;
+        TurnPass_multiplayer = false;
+
+        Soundmanager.instance.Play_DiceRollSound();
+        for (int i = 0; i < 4; i++)
+        {
+            Skip_BT[i].SetActive(false);
+        }
+        Dicebt.enabled = false;
+        StartCoroutine("PlayDiceAnim");
+    }
+
     //=================================
 
     IEnumerator PlayDiceAnim()
@@ -305,14 +273,10 @@ public class Playarea : MonoBehaviour
         {
             DiceValIS = UnityEngine.Random.Range(0, 6);
 
-            if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
-            {
-                Multi_Manager.inst.SetDiceValmultiplayer(DiceValIS);
-            }
-            else
-            {
-                diceImg.sprite = oneTosixImg[DiceValIS];
-            }
+            Multi_Manager.inst.SetDiceValmultiplayer(DiceValIS);
+
+            diceImg.sprite = oneTosixImg[DiceValIS];
+
             diceCt = 0;
             //==========  Player turn ===========
 
@@ -329,45 +293,18 @@ public class Playarea : MonoBehaviour
             if (Is_4th_RollTime)
             {
                 Is_4th_RollTime = false;
-                StopCoroutine(PlayDiceAnim());
+                StopCoroutine("PlayDiceAnim");
                 Check_For_Roll_other_PlayerDice();
             }
             Active_Undo_obj();
             ProvideValue();
-            StopCoroutine(PlayDiceAnim());
+            StopCoroutine("PlayDiceAnim");
         }
         else
         {
             diceImg.sprite = diceAllImage[diceCt];
             diceCt++;
-            StartCoroutine(PlayDiceAnim());
-        }
-    }
-
-    //========  multiplayer dice Animation display to other player ========
-
-    public void Player_Dice_click()
-    {
-        StartCoroutine(Multi_PlayDiceAnim());
-    }
-
-    IEnumerator Multi_PlayDiceAnim()
-    {
-        yield return new WaitForSeconds(0.05f);
-        if (diceCt2 == 8)
-        {
-
-            diceCt2 = 0;
-            StartCoroutine(Multi_PlayDiceAnim());
-        }
-        else
-        {
-            if (isStopAnim)
-            {
-                diceImg.sprite = diceAllImage[diceCt2];
-                diceCt2++;
-                StartCoroutine(Multi_PlayDiceAnim());
-            }
+            StartCoroutine("PlayDiceAnim");
         }
     }
 
@@ -386,21 +323,15 @@ public class Playarea : MonoBehaviour
         Active_Undo_obj();
     }
 
-    //======================================================
 
     public void Undo_Bt_click()
     {
         switch (playerTurn)
         {
             case 0:
-                if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+                if (FST_Gameplay.IsMultiplayer)
                 {
-
-                    //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
-                    string PlayerNo = "1";
-                    int indx = int.Parse(PlayerNo);
-
-                    if (indx == playerTurn + 1)
+                    if (PlayerID == playerTurn + 1)
                     {
                         Multi_Manager.inst.Save_Undoo();
                     }
@@ -430,13 +361,9 @@ public class Playarea : MonoBehaviour
 
                 break;
             case 1:
-                if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+                if (FST_Gameplay.IsMultiplayer)
                 {
-                    //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
-                    string PlayerNo = "1";
-                    int indx = int.Parse(PlayerNo);
-
-                    if (indx == playerTurn + 1)
+                    if (PlayerID == playerTurn + 1)
                     {
                         Multi_Manager.inst.Save_Undoo();
                     }
@@ -465,13 +392,9 @@ public class Playarea : MonoBehaviour
 
                 break;
             case 2:
-                if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+                if (FST_Gameplay.IsMultiplayer)
                 {
-                    //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
-                    string PlayerNo = "1";
-                    int indx = int.Parse(PlayerNo);
-
-                    if (indx == playerTurn + 1)
+                    if (PlayerID == playerTurn + 1)
                     {
                         Multi_Manager.inst.Save_Undoo();
                     }
@@ -500,13 +423,9 @@ public class Playarea : MonoBehaviour
 
                 break;
             case 3:
-                if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+                if (FST_Gameplay.IsMultiplayer)
                 {
-                    //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
-                    string PlayerNo = "1";
-                    int indx = int.Parse(PlayerNo);
-
-                    if (indx == playerTurn + 1)
+                    if (PlayerID == playerTurn + 1)
                     {
                         Multi_Manager.inst.Save_Undoo();
                     }
@@ -652,7 +571,6 @@ public class Playarea : MonoBehaviour
                     (Player1Manager[1].GetComponent<PlayerManager>().isFinishline && !Player1Manager[0].GetComponent<PlayerManager>().PlayerOnGameBoard && DiceValIS != 5))
                 {
                     PassTurn();
-                    Multi_Manager.inst.Multiplayer_turn_pass();
                     break;
                 }
 
@@ -669,7 +587,7 @@ public class Playarea : MonoBehaviour
                     {
 
                         SkipHandler(playerTurn);
-                        Multi_Manager.inst.DisplaySkipM(playerTurn);
+                        Multi_Manager.inst.Transmit_DisplaySkipM(playerTurn);
 
                         if (!Player1Manager[0].GetComponent<PlayerManager>().isFinishline &&
                             p1_remainStep >= DiceValIS)
@@ -703,13 +621,11 @@ public class Playarea : MonoBehaviour
                     else
                     {
                         PassTurn();
-                        Multi_Manager.inst.Multiplayer_turn_pass();
                     }
                 }
                 else
                 {
                     PassTurn();
-                    Multi_Manager.inst.Multiplayer_turn_pass();
                 }
                 //			Invoke ("Player1_AI", 3f);
                 a = StartCoroutine(SeenCountDown(3));
@@ -728,7 +644,6 @@ public class Playarea : MonoBehaviour
                     (Player2Manager[1].GetComponent<PlayerManager>().isFinishline && !Player2Manager[0].GetComponent<PlayerManager>().PlayerOnGameBoard && DiceValIS != 5))
                 {
                     PassTurn();
-                    Multi_Manager.inst.Multiplayer_turn_pass();
                     break;
                 }
                 if (Player2Manager[0].GetComponent<PlayerManager>().PlayerOnGameBoard ||
@@ -744,7 +659,7 @@ public class Playarea : MonoBehaviour
                     {
 
                         SkipHandler(playerTurn);
-                        Multi_Manager.inst.DisplaySkipM(playerTurn);
+                        Multi_Manager.inst.Transmit_DisplaySkipM(playerTurn);
                         if (!Player2Manager[0].GetComponent<PlayerManager>().isFinishline &&
                             p1_remainStep >= DiceValIS)
                         {
@@ -775,14 +690,12 @@ public class Playarea : MonoBehaviour
                     else
                     {
                         PassTurn();
-                        Multi_Manager.inst.Multiplayer_turn_pass();
                         break;
                     }
                 }
                 else
                 {
                     PassTurn();
-                    Multi_Manager.inst.Multiplayer_turn_pass();
                 }
                 a = StartCoroutine(SeenCountDown(3));
                 //			Invoke ("Player2_AI", 3f);
@@ -799,7 +712,6 @@ public class Playarea : MonoBehaviour
                     (Player3Manager[1].GetComponent<PlayerManager>().isFinishline && !Player3Manager[0].GetComponent<PlayerManager>().PlayerOnGameBoard && DiceValIS != 5))
                 {
                     PassTurn();
-                    Multi_Manager.inst.Multiplayer_turn_pass();
                     break;
                 }
 
@@ -816,7 +728,7 @@ public class Playarea : MonoBehaviour
                     {
 
                         SkipHandler(playerTurn);
-                        Multi_Manager.inst.DisplaySkipM(playerTurn);
+                        Multi_Manager.inst.Transmit_DisplaySkipM(playerTurn);
 
 
                         if (!Player3Manager[0].GetComponent<PlayerManager>().isFinishline &&
@@ -849,14 +761,12 @@ public class Playarea : MonoBehaviour
                     else
                     {
                         PassTurn();
-                        Multi_Manager.inst.Multiplayer_turn_pass();
                         break;
                     }
                 }
                 else
                 {
                     PassTurn();
-                    Multi_Manager.inst.Multiplayer_turn_pass();
                 }
 
                 //=======================================================================
@@ -877,7 +787,6 @@ public class Playarea : MonoBehaviour
                     (Player4Manager[1].GetComponent<PlayerManager>().isFinishline && !Player4Manager[0].GetComponent<PlayerManager>().PlayerOnGameBoard && DiceValIS != 5))
                 {
                     PassTurn();
-                    Multi_Manager.inst.Multiplayer_turn_pass();
                     break;
                 }
 
@@ -894,7 +803,7 @@ public class Playarea : MonoBehaviour
                     {
 
                         SkipHandler(playerTurn);
-                        Multi_Manager.inst.DisplaySkipM(playerTurn);
+                        Multi_Manager.inst.Transmit_DisplaySkipM(playerTurn);
 
 
                         if (!Player4Manager[0].GetComponent<PlayerManager>().isFinishline &&
@@ -927,14 +836,12 @@ public class Playarea : MonoBehaviour
                     else
                     {
                         PassTurn();
-                        Multi_Manager.inst.Multiplayer_turn_pass();
                         break;
                     }
                 }
                 else
                 {
                     PassTurn();
-                    Multi_Manager.inst.Multiplayer_turn_pass();
                 }
                 //=======================================================================
                 a = StartCoroutine(SeenCountDown(3));
@@ -1109,7 +1016,7 @@ public class Playarea : MonoBehaviour
             yield return new WaitForSeconds(second);
             CountDown_Image.SetActive(true);
             Anim.CrossFade("CountDownAnim", 0f);
-            TimeToChange = 3;
+            m_TimeToChange = 3;
             yield return new WaitForSeconds(3);
             CountDown_Image.SetActive(false);
             //			abc = true;
@@ -1118,19 +1025,19 @@ public class Playarea : MonoBehaviour
             switch (playerTurnValue)
             {
                 case 0:
-                    Invoke("Player1_AI", 0f);
+                    Player1_AI();
                     break;
 
                 case 1:
-                    Invoke("Player2_AI", 0f);
+                    Player2_AI();
                     break;
 
                 case 2:
-                    Invoke("Player3_AI", 0f);
+                    Player3_AI();
                     break;
 
                 case 3:
-                    Invoke("Player4_AI", 0f);
+                    Player4_AI();
                     break;
             }
             //				abc = true;
@@ -1147,7 +1054,7 @@ public class Playarea : MonoBehaviour
             yield return new WaitForSeconds(second);
             CountDown_Image.SetActive(true);
             Anim.CrossFade("CountDownAnim", 0f);
-            TimeToChange = 3;
+            m_TimeToChange = 3;
             yield return new WaitForSeconds(3);
             CountDown_Image.SetActive(false);
             //			abc = true;
@@ -1156,19 +1063,19 @@ public class Playarea : MonoBehaviour
             switch (playerTurnValue)
             {
                 case 0:
-                    Invoke("Player1_AI", 0f);
+                    Player1_AI();
                     break;
 
                 case 1:
-                    Invoke("Player2_AI", 0f);
+                    Player2_AI();
                     break;
 
                 case 2:
-                    Invoke("Player3_AI", 0f);
+                    Player3_AI();
                     break;
 
                 case 3:
-                    Invoke("Player4_AI", 0f);
+                    Player4_AI();
                     break;
             }
             //				abc = true;
@@ -1178,78 +1085,56 @@ public class Playarea : MonoBehaviour
 
     #endregion
 
+
+    Color m_Green = Color.green;
+    Color m_Blue = Color.blue;
+    Color m_Yellow = Color.yellow;
+    Color m_Red = Color.red;
+    bool initColors = false;
     IEnumerator HighlightTurn()
     {
+        if (!initColors)
+        {
+            initColors = true;
+
+            if (ColorUtility.TryParseHtmlString("#09FF00C0", out Color c))
+                m_Green = c;
+
+            if (ColorUtility.TryParseHtmlString("#FF0000C0", out c))
+                m_Red = c;
+
+            if (ColorUtility.TryParseHtmlString("#FBFF00C0", out c))
+                m_Yellow = c;
+
+            if (ColorUtility.TryParseHtmlString("#0000FFC0", out c))
+                m_Blue = c;
+        }
+
         yield return new WaitForSeconds(0.5f);
         //		print ("Player Turn  HighlightTurn :" + playerTurn);
+        for (int i = 0; i < 4; i++)
+        {
+            playerTurnAnim[i].SetActive(playerTurn == i);
+        }
+        PlayerDiceAnim.SetActive(true);
+
+        PlayerDiceAnim.GetComponent<Image>().color = playerTurn == 0 ? m_Green : playerTurn == 1 ? m_Red : playerTurn == 2 ? m_Yellow : m_Blue;
+
         switch (playerTurn)
         {
             case 0:
-
-                for (int i = 0; i < 4; i++)
-                {
-                    playerTurnAnim[i].SetActive(false);
-                }
-                playerTurnAnim[0].SetActive(true);
-
-                //---------Vishal Code For Dice Highliting-------
-                PlayerDiceAnim.SetActive(true);
-                Color GreenColor = new Color();
-                ColorUtility.TryParseHtmlString("#09FF00C0", out GreenColor);
-                PlayerDiceAnim.GetComponent<Image>().color = GreenColor;
-                //------------------ End Code
-
                 print("Player 1's Turn");
                 break;
 
             case 1:
-
-                for (int i = 0; i < 4; i++)
-                {
-                    playerTurnAnim[i].SetActive(false);
-                }
-                playerTurnAnim[1].SetActive(true);
-
-                //---------Vishal Code For Dice Highliting-------
-                PlayerDiceAnim.SetActive(true);
-                Color RedColor = new Color();
-                ColorUtility.TryParseHtmlString("#FF0000C0", out RedColor);
-                PlayerDiceAnim.GetComponent<Image>().color = RedColor;
-                //------------------ End Code
                 print("Player 2's Turn");
                 break;
 
             case 2:
-
-                for (int i = 0; i < 4; i++)
-                {
-                    playerTurnAnim[i].SetActive(false);
-                }
-                playerTurnAnim[2].SetActive(true);
-
-                //---------Vishal Code For Dice Highliting-------
-                PlayerDiceAnim.SetActive(true);
-                Color YellowColor = new Color();
-                ColorUtility.TryParseHtmlString("#FBFF00C0", out YellowColor);
-                PlayerDiceAnim.GetComponent<Image>().color = YellowColor;
-                //------------------ End Code
                 print("Player 3's Turn");
                 break;
 
             case 3:
-
-                for (int i = 0; i < 4; i++)
-                {
-                    playerTurnAnim[i].SetActive(false);
-                }
-                playerTurnAnim[3].SetActive(true);
-
-                //---------Vishal Code For Dice Highliting-------
-                PlayerDiceAnim.SetActive(true);
-                Color BlueColor = new Color();
-                ColorUtility.TryParseHtmlString("#0000FFC0", out BlueColor);
-                PlayerDiceAnim.GetComponent<Image>().color = BlueColor;
-                //------------------ End Code
                 print("Player 4's Turn");
                 break;
         }
@@ -1257,6 +1142,9 @@ public class Playarea : MonoBehaviour
 
     public void PassTurn()
     {
+        if (!GameStarted)
+            return;
+
         //========= card 4 check  ========
 
         //		if (playerTurn == WhichPlayerRollAgin && Is_4th_RollTime) {
@@ -1266,22 +1154,29 @@ public class Playarea : MonoBehaviour
         //		}
 
         //===================================
-        Playarea.instt.Close_All_Animation();
-        Check_turn();
-        StartCoroutine(HighlightTurn());
-        Dicebt.enabled = true;
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1 && PlayerPrefs.GetInt(ApiConstant.vibration_check) == 0)
+
+        if (IsMyTurn/*FST_Gameplay.IsMaster*/)
         {
+            Debug.Log("was my turn, passing turns now. is online multiplayer = " + FST_Gameplay.IsMultiplayer);
 
-            //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
-            string PlayerNo = "1";
-            int indx = int.Parse(PlayerNo);
+            if (FST_Gameplay.IsMultiplayer)
+                OnlineTurn();//notify others of the turn
 
-            if (indx == playerTurn + 1)
+            Close_All_Animation();
+            Check_turn();
+            StartCoroutine(HighlightTurn());
+            Dicebt.enabled = true;
+
+        }
+#if UNITY_MOBILE
+        if (FST_Gameplay.IsMultiplayer && PlayerPrefs.GetInt(ApiConstant.vibration_check) == 0)
+        {
+            if (PlayerID == playerTurn + 1)
             {
                 Handheld.Vibrate();
             }
         }
+#endif
     }
 
     void Check_turn()
@@ -1296,7 +1191,7 @@ public class Playarea : MonoBehaviour
                 {
 
                     Is_3rd_Card_SkipTurnActive = false;
-                    if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+                    if (FST_Gameplay.IsMultiplayer)
                     {
                         Open_Card_Popup("player " + (playerTurn + 1) + "  turn skip.....");
                         Multi_Manager.inst.CardPopUp("player " + (playerTurn + 1) + "  turn skip.....");
@@ -1321,7 +1216,7 @@ public class Playarea : MonoBehaviour
                 if (Is_3rd_Card_SkipTurnActive && playerTurn == WhichPlayer_Turn_Skip)
                 {
                     Is_3rd_Card_SkipTurnActive = false;
-                    if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+                    if (FST_Gameplay.IsMultiplayer)
                     {
                         Open_Card_Popup("player " + (playerTurn + 1) + "  turn skip.....");
                         Multi_Manager.inst.CardPopUp("player " + (playerTurn + 1) + "  turn skip.....");
@@ -1336,7 +1231,7 @@ public class Playarea : MonoBehaviour
             }
         }
 
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+        if (FST_Gameplay.IsMultiplayer)
         {
             Check_AnyPlayer_is_Disconnected_form_Game();
         }
@@ -1374,16 +1269,12 @@ public class Playarea : MonoBehaviour
     public void Skip_1()
     {
         isSamePlayerTurn = false;
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+        if (FST_Gameplay.IsMultiplayer)
         {
-            //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
-            string PlayerNo = "1";
-            int indx = int.Parse(PlayerNo);
-
             if (skip_player1 == 0)
             {
             }
-            else if (indx == playerTurn + 1)
+            else if (PlayerID == playerTurn + 1)
             {
                 skip_player1--;
                 Multi_Manager.inst.Save_SkipVal(1, skip_player1);
@@ -1413,15 +1304,12 @@ public class Playarea : MonoBehaviour
     public void Skip_2()
     {
         isSamePlayerTurn = false;
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+        if (FST_Gameplay.IsMultiplayer)
         {
-            //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
-            string PlayerNo = "1";
-            int indx = int.Parse(PlayerNo);
             if (skip_player2 == 0)
             {
             }
-            else if (indx == playerTurn + 1)
+            else if (PlayerID == playerTurn + 1)
             {
                 skip_player2--;
                 Multi_Manager.inst.Save_SkipVal(2, skip_player2);
@@ -1451,15 +1339,12 @@ public class Playarea : MonoBehaviour
     public void Skip_3()
     {
         isSamePlayerTurn = false;
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+        if (FST_Gameplay.IsMultiplayer)
         {
-            //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
-            string PlayerNo = "1";
-            int indx = int.Parse(PlayerNo);
             if (skip_player3 == 0)
             {
             }
-            else if (skip_player3 != 0 && indx == playerTurn + 1)
+            else if (skip_player3 != 0 && PlayerID == playerTurn + 1)
             {
                 skip_player3--;
                 Multi_Manager.inst.Save_SkipVal(3, skip_player3);
@@ -1488,15 +1373,12 @@ public class Playarea : MonoBehaviour
     public void Skip_4()
     {
         isSamePlayerTurn = false;
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+        if (FST_Gameplay.IsMultiplayer)
         {
-            //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
-            string PlayerNo = "1";
-            int indx = int.Parse(PlayerNo);
             if (skip_player4 == 0)
             {
             }
-            else if (indx == playerTurn + 1)
+            else if (PlayerID == playerTurn + 1)
             {
                 skip_player4--;
                 Multi_Manager.inst.Save_SkipVal(4, skip_player4);
@@ -1710,12 +1592,9 @@ public class Playarea : MonoBehaviour
             obj[t] = obj[r];
             obj[r] = tmp;
         }
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+        if (FST_Gameplay.IsMultiplayer)
         {
-            //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
-            string PlayerNo = "1";
-            int indx = int.Parse(PlayerNo);
-            if (indx == 1)
+            if (PlayerID == 1)
             {
                 Multi_Manager.inst.Set_Safe_Zone(
                     safeZoneArea[5].gameObject.name,
@@ -1736,12 +1615,9 @@ public class Playarea : MonoBehaviour
             obj[t] = obj[r];
             obj[r] = tmp;
         }
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+        if (FST_Gameplay.IsMultiplayer)
         {
-            //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
-            string PlayerNo = "1";
-            int indx = int.Parse(PlayerNo);
-            if (indx == 1)
+            if (PlayerID == 1)
             {
                 Multi_Manager.inst.Set_Que_Zone(
                     AllCardObj[5].gameObject.name,
@@ -1795,11 +1671,7 @@ public class Playarea : MonoBehaviour
 
     public void Multiplayer_Set_SafeZone()
     {
-        //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
-        string PlayerNo = "1";
-        int indx = int.Parse(PlayerNo);
-
-        if (indx == 1)
+        if (PlayerID == 1)
         {
             reshuffle(safeZoneArea);
         }
@@ -1807,11 +1679,7 @@ public class Playarea : MonoBehaviour
 
     public void Multiplayer_Set_Cardd()
     {
-        //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
-        string PlayerNo = "1";
-        int indx = int.Parse(PlayerNo);
-
-        if (indx == 1)
+        if (PlayerID == 1)
         {
             reshuffle_2(AllCardObj);
             RandomValForCar = Random.Range(1, 5);
@@ -1940,12 +1808,7 @@ public class Playarea : MonoBehaviour
     //================  chattt ======================
     public void msgdata()
     {
-        //string msg, name;
-        //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
-        string PlayerNo = "1";
-        int indx = int.Parse(PlayerNo);
-
-        switch (indx)
+        switch (PlayerID)
         {
             case 1:
                 Multi_Manager.inst.sendmesg(playarea_text[0].text, inputfieldtext.text);
@@ -1966,19 +1829,10 @@ public class Playarea : MonoBehaviour
 
     public void emojiedata(int no)
     {
-        //string msg, name;
-        //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
-        string PlayerNo = "1";
-        int indx = int.Parse(PlayerNo);
-
-
-
-        switch (indx)
+        switch (PlayerID)
         {
 
             case 1:
-
-
                 Multi_Manager.inst.imojisimg(playarea_text[0].text, no);
 
                 break;
@@ -2038,14 +1892,9 @@ public class Playarea : MonoBehaviour
     {
         // ======= playe 1 ========
 
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+        if (FST_Gameplay.IsMultiplayer)
         {
-
-            //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
-            string PlayerNo = "1";
-            int indx = int.Parse(PlayerNo);
-
-            if (indx == playerTurn + 1)
+            if (PlayerID == playerTurn + 1)
             {
                 if (Player1Manager[0].GetComponent<PlayerManager>().PlayerOnGameBoard &&
                     !Player1Manager[0].GetComponent<PlayerManager>().isFinishline)
@@ -2096,13 +1945,9 @@ public class Playarea : MonoBehaviour
 
         //========playe 2 ===============
 
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+        if (FST_Gameplay.IsMultiplayer)
         {
-            //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
-            string PlayerNo = "1";
-            int indx = int.Parse(PlayerNo);
-
-            if (indx == playerTurn + 1)
+            if (PlayerID == playerTurn + 1)
             {
                 if (Player2Manager[0].GetComponent<PlayerManager>().PlayerOnGameBoard &&
                     !Player2Manager[0].GetComponent<PlayerManager>().isFinishline)
@@ -2150,13 +1995,9 @@ public class Playarea : MonoBehaviour
 
         //========playe 3 ===============
 
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+        if (FST_Gameplay.IsMultiplayer)
         {
-            //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
-            string PlayerNo = "1";
-            int indx = int.Parse(PlayerNo);
-
-            if (indx == playerTurn + 1)
+            if (PlayerID == playerTurn + 1)
             {
                 if (Player3Manager[0].GetComponent<PlayerManager>().PlayerOnGameBoard &&
                     !Player3Manager[0].GetComponent<PlayerManager>().isFinishline)
@@ -2204,13 +2045,9 @@ public class Playarea : MonoBehaviour
 
         //========playe 4 ===============
 
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+        if (FST_Gameplay.IsMultiplayer)
         {
-            //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
-            string PlayerNo = "1";
-            int indx = int.Parse(PlayerNo);
-
-            if (indx == playerTurn + 1)
+            if (PlayerID == playerTurn + 1)
             {
                 if (Player4Manager[0].GetComponent<PlayerManager>().PlayerOnGameBoard &&
                     !Player4Manager[0].GetComponent<PlayerManager>().isFinishline)
@@ -2418,12 +2255,8 @@ public class Playarea : MonoBehaviour
     public void PutBackOpen(int Put_back_val)
     {
         //===== player 1 ========
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
-        {
-            //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
-            string PlayerNo = "1";
-            int indx = int.Parse(PlayerNo);
-            if (indx == playerTurn + 1)
+        if (FST_Gameplay.IsMultiplayer)
+        {            if (PlayerID == playerTurn + 1)
             {
                 if (Player1Manager[0].GetComponent<PlayerManager>().PlayerOnGameBoard &&
                     !Player1Manager[0].GetComponent<PlayerManager>().isFinishline &&
@@ -2475,13 +2308,9 @@ public class Playarea : MonoBehaviour
 
         //===== player 2 ========
 
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+        if (FST_Gameplay.IsMultiplayer)
         {
-
-            //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
-            string PlayerNo = "1";
-            int indx = int.Parse(PlayerNo);
-            if (indx == playerTurn + 1)
+            if (PlayerID == playerTurn + 1)
             {
                 if (Player2Manager[0].GetComponent<PlayerManager>().PlayerOnGameBoard &&
                     !Player2Manager[0].GetComponent<PlayerManager>().isFinishline &&
@@ -2533,13 +2362,9 @@ public class Playarea : MonoBehaviour
 
         //===== player 3 ========
 
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+        if (FST_Gameplay.IsMultiplayer)
         {
-
-            //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
-            string PlayerNo = "1";
-            int indx = int.Parse(PlayerNo);
-            if (indx == playerTurn + 1)
+            if (PlayerID == playerTurn + 1)
             {
                 if (Player3Manager[0].GetComponent<PlayerManager>().PlayerOnGameBoard &&
                     !Player3Manager[0].GetComponent<PlayerManager>().isFinishline &&
@@ -2589,13 +2414,9 @@ public class Playarea : MonoBehaviour
 
         //===== player 4 ========
 
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+        if (FST_Gameplay.IsMultiplayer)
         {
-
-            //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
-            string PlayerNo = "1";
-            int indx = int.Parse(PlayerNo);
-            if (indx == playerTurn + 1)
+            if (PlayerID == playerTurn + 1)
             {
                 if (Player4Manager[0].GetComponent<PlayerManager>().PlayerOnGameBoard &&
                     !Player4Manager[0].GetComponent<PlayerManager>().isFinishline &&
@@ -2642,8 +2463,6 @@ public class Playarea : MonoBehaviour
 
             }
         }
-
-        //=============================
     }
 
     public void OffPurBackBoolen()
@@ -2785,19 +2604,17 @@ public class Playarea : MonoBehaviour
         OffPurBackBoolen();
 
     }
-    //====================================================================
+
+    public static int PlayerID = -99;
+
+
     public void Check_For_Roll_other_PlayerDice()
     {
         // ======= playe 1 ========
 
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+        if (FST_Gameplay.IsMultiplayer)
         {
-
-            //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
-            string PlayerNo = "1";
-            int indx = int.Parse(PlayerNo);
-
-            if (indx == (playerTurn + 1) && WhichPlayerRollAgin == 0)
+            if (PlayerID == (playerTurn + 1) && WhichPlayerRollAgin == 0)
             {
                 if (Player1Manager[0].GetComponent<PlayerManager>().PlayerOnGameBoard &&
                     !Player1Manager[0].GetComponent<PlayerManager>().isFinishline)
@@ -2840,13 +2657,9 @@ public class Playarea : MonoBehaviour
 
         //========playe 2 ===============
 
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+        if (FST_Gameplay.IsMultiplayer)
         {
-            //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
-            string PlayerNo = "1";
-            int indx = int.Parse(PlayerNo);
-
-            if (indx == (playerTurn + 1) && WhichPlayerRollAgin == 1)
+            if (PlayerID == (playerTurn + 1) && WhichPlayerRollAgin == 1)
             {
                 if (Player2Manager[0].GetComponent<PlayerManager>().PlayerOnGameBoard &&
                     !Player2Manager[0].GetComponent<PlayerManager>().isFinishline)
@@ -2887,13 +2700,9 @@ public class Playarea : MonoBehaviour
 
         //========playe 3 ===============
 
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+        if (FST_Gameplay.IsMultiplayer)
         {
-            //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
-            string PlayerNo = "1";
-            int indx = int.Parse(PlayerNo);
-
-            if (indx == (playerTurn + 1) && WhichPlayerRollAgin == 2)
+            if (PlayerID == (playerTurn + 1) && WhichPlayerRollAgin == 2)
             {
                 if (Player3Manager[0].GetComponent<PlayerManager>().PlayerOnGameBoard &&
                     !Player3Manager[0].GetComponent<PlayerManager>().isFinishline)
@@ -2936,13 +2745,9 @@ public class Playarea : MonoBehaviour
 
         //========playe 4 ===============
 
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+        if (FST_Gameplay.IsMultiplayer)
         {
-            //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
-            string PlayerNo = "1";
-            int indx = int.Parse(PlayerNo);
-
-            if (indx == (playerTurn + 1) && WhichPlayerRollAgin == 3)
+            if (PlayerID == (playerTurn + 1) && WhichPlayerRollAgin == 3)
             {
                 if (Player4Manager[0].GetComponent<PlayerManager>().PlayerOnGameBoard &&
                     !Player4Manager[0].GetComponent<PlayerManager>().isFinishline)
@@ -2983,7 +2788,7 @@ public class Playarea : MonoBehaviour
 
         //=======================
     }
-    //=========================================================
+
 
     public void Open_3rd_Card_skipturn()
     {
@@ -2993,7 +2798,7 @@ public class Playarea : MonoBehaviour
     public void Close_3rd_Card_skipturn(int val)
     {
         turnskipObj.SetActive(false);
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+        if (FST_Gameplay.IsMultiplayer)
         {
             WhichPlayer_Turn_Skip = val;
             Open_Card_Popup("player  " + (val + 1) + " will skip his turn one time");
@@ -3020,7 +2825,7 @@ public class Playarea : MonoBehaviour
     public void Close_4th_Card_RollAgin(int val)
     {
         RollAginObj.SetActive(false);
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+        if (FST_Gameplay.IsMultiplayer)
         {
             WhichPlayerRollAgin = val;
             Open_Card_Popup("Player" + (playerTurn + 1) + " taking player  " + (val + 1) + " turn...");
@@ -3037,12 +2842,9 @@ public class Playarea : MonoBehaviour
     public void GenerateRandomVal_Card()
     {
 
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+        if (FST_Gameplay.IsMultiplayer)
         {
-            //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
-            string PlayerNo = "1";
-            int indx = int.Parse(PlayerNo);
-            if (indx == 1)
+            if (FST_Gameplay.IsMaster)
             {
                 RandomValForCar = Random.Range(1, 5);
                 Multi_Manager.inst.CardValueSet_multi(RandomValForCar);
@@ -3057,48 +2859,76 @@ public class Playarea : MonoBehaviour
 
     public int CheckNoOFPlayerINSameBox(int indx)
     {
-        int Val = 0;
+        int v = 0;
 
         //==========  Player 1  ===============
         if (Player1Manager[0].GetComponent<PlayerManager>().Position == indx)
         {
-            Val++;
+            v++;
         }
         if (Player1Manager[1].GetComponent<PlayerManager>().Position == indx)
         {
-            Val++;
+            v++;
         }
         //==========  Player 2  ===============
         if (Player2Manager[0].GetComponent<PlayerManager>().Position == indx)
         {
-            Val++;
+            v++;
         }
         if (Player2Manager[1].GetComponent<PlayerManager>().Position == indx)
         {
-            Val++;
+            v++;
         }
         //==========  Player 3  ===============
         if (Player3Manager[0].GetComponent<PlayerManager>().Position == indx)
         {
-            Val++;
+            v++;
         }
         if (Player3Manager[1].GetComponent<PlayerManager>().Position == indx)
         {
-            Val++;
+            v++;
         }
 
         //==========  Player 4  ===============
 
         if (Player4Manager[0].GetComponent<PlayerManager>().Position == indx)
         {
-            Val++;
+            v++;
         }
         if (Player4Manager[1].GetComponent<PlayerManager>().Position == indx)
         {
-            Val++;
+            v++;
         }
 
-        return Val;
+        return v;
+    }
+    bool IsMyTurn { get {
+            return //(int)PhotonNetwork.LocalPlayer.CustomProperties["save_indx"] == playerTurn
+                   PlayerID - 1 == playerTurn
+                     || !FST_Gameplay.IsMultiplayer; } }//could use actor numbers here, should really be pun id
+    private void OnlineTurn()
+    {
+        Debug.Log("my turn = " + IsMyTurn);
+        //    if (!FST_Gameplay.IsMaster/*PunTurnManager.IsFinishedByMe*/)
+        //    return;
+        playerTurn++;
+        if (playerTurn >= PhotonNetwork.CurrentRoom.PlayerCount)
+            playerTurn = 0;
+        Debug.Log("OnlineTurn(), result = " + playerTurn);
+        Multi_Manager.inst.Multiplayer_turn_pass(playerTurn);
+
+        Debug.Log("my turn = " + IsMyTurn);
+    }
+
+    public void ReceiveTurn(int turn)
+    {
+        playerTurn = turn;
+
+        Debug.Log("ReceiveTurn(), result = " + turn);
+        Close_All_Animation();
+        Check_turn();
+        StartCoroutine(HighlightTurn());
+        Dicebt.enabled = true;
     }
     //========================================================
 }

@@ -49,7 +49,7 @@ public class CharacterPurchase : MonoBehaviour
             Char_Purcgase_bt[5].SetActive(false);
         }
 
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+        if (FST_Gameplay.IsMultiplayer)
         {
             switch (PlayerPrefs.GetInt(ApiConstant.Chr_Apply))
             {
@@ -168,7 +168,7 @@ public class CharacterPurchase : MonoBehaviour
             PlayerPrefs.SetInt(ApiConstant.Chr_Apply, 1);
             tickMark[0].SetActive(true);
             //============
-            if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+            if (FST_Gameplay.IsMultiplayer)
             {
                 //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
                 //int indx = int.Parse(PlayerNo);
@@ -197,7 +197,7 @@ public class CharacterPurchase : MonoBehaviour
             PlayerPrefs.SetInt(ApiConstant.Chr_Apply, 2);
             tickMark[1].SetActive(true);
             //============
-            if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+            if (FST_Gameplay.IsMultiplayer)
             {
                 //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
                 //int indx = int.Parse(PlayerNo);
@@ -225,7 +225,7 @@ public class CharacterPurchase : MonoBehaviour
             PlayerPrefs.SetInt(ApiConstant.Chr_Apply, 3);
             tickMark[2].SetActive(true);
             //============
-            if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+            if (FST_Gameplay.IsMultiplayer)
             {
                 //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
                 //int indx = int.Parse(PlayerNo);
@@ -251,7 +251,7 @@ public class CharacterPurchase : MonoBehaviour
             PlayerPrefs.SetInt(ApiConstant.Chr_Apply, 4);
             tickMark[3].SetActive(true);
             //============
-            if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+            if (FST_Gameplay.IsMultiplayer)
             {
                 //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
                 //int indx = int.Parse(PlayerNo);
@@ -277,7 +277,7 @@ public class CharacterPurchase : MonoBehaviour
             PlayerPrefs.SetInt(ApiConstant.Chr_Apply, 5);
             tickMark[4].SetActive(true);
             //============
-            if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+            if (FST_Gameplay.IsMultiplayer)
             {
                 //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
                 //int indx = int.Parse(PlayerNo);
@@ -303,7 +303,7 @@ public class CharacterPurchase : MonoBehaviour
             PlayerPrefs.SetInt(ApiConstant.Chr_Apply, 6);
             tickMark[5].SetActive(true);
             //============
-            if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+            if (FST_Gameplay.IsMultiplayer)
             {
                 //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
                 //int indx = int.Parse(PlayerNo);
@@ -350,7 +350,7 @@ public class CharacterPurchase : MonoBehaviour
     public IEnumerator SetPinImage1(int Val)
     {
 
-        if (PlayerPrefs.GetInt(ApiConstant.multiplayerGame) == 1)
+        if (FST_Gameplay.IsMultiplayer)
         {
             //string PlayerNo = (string)PhotonNetwork.player.CustomProperties["save_indx"];
             //int indx = int.Parse(PlayerNo);

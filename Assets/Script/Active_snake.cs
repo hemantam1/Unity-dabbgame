@@ -52,14 +52,14 @@ public class Active_snake : MonoBehaviour
 	{
 		switch (playerNO) {
 
-		case 10:
+		case 0:
 
 			if (!Playarea.instt.IsPlayerOnSafeZone (Playerr [0].gameObject.GetComponent<PlayerManager> ().Position)) {
 				Playerr [0].gameObject.GetComponent<PlayerManager> ().CheckAttackZone ();
 			}
 			Playerr [0].enabled = true;
 			break;
-		case 11:
+		case 1:
 
 			if (!Playarea.instt.IsPlayerOnSafeZone (Playerr [1].gameObject.GetComponent<PlayerManager> ().Position)) {
 				Playerr [1].gameObject.GetComponent<PlayerManager> ().CheckAttackZone ();
@@ -67,7 +67,7 @@ public class Active_snake : MonoBehaviour
 
 			Playerr [1].enabled = true;
 			break;
-		case 20:
+		case 2:
 
 			if (!Playarea.instt.IsPlayerOnSafeZone (Playerr [2].gameObject.GetComponent<PlayerManager> ().Position)) {
 				Playerr [2].gameObject.GetComponent<PlayerManager> ().CheckAttackZone ();
@@ -75,14 +75,14 @@ public class Active_snake : MonoBehaviour
 
 			Playerr [2].enabled = true;
 			break;
-		case 21:
+		case 3:
 
 			if (!Playarea.instt.IsPlayerOnSafeZone (Playerr [3].gameObject.GetComponent<PlayerManager> ().Position)) {
 				Playerr [3].gameObject.GetComponent<PlayerManager> ().CheckAttackZone ();
 			}
 			Playerr [3].enabled = true;
 			break;
-		case 30:
+		case 4:
 
 			if (!Playarea.instt.IsPlayerOnSafeZone (Playerr [4].gameObject.GetComponent<PlayerManager> ().Position)) {
 				Playerr [4].gameObject.GetComponent<PlayerManager> ().CheckAttackZone ();
@@ -90,7 +90,7 @@ public class Active_snake : MonoBehaviour
 
 			Playerr [4].enabled = true;
 			break;
-		case 31:
+		case 5:
 
 			if (!Playarea.instt.IsPlayerOnSafeZone (Playerr [5].gameObject.GetComponent<PlayerManager> ().Position)) {
 				Playerr [5].gameObject.GetComponent<PlayerManager> ().CheckAttackZone ();
@@ -98,7 +98,7 @@ public class Active_snake : MonoBehaviour
 
 			Playerr [5].enabled = true;
 			break;
-		case 40:
+		case 6:
 
 			if (!Playarea.instt.IsPlayerOnSafeZone (Playerr [6].gameObject.GetComponent<PlayerManager> ().Position)) {
 				Playerr [6].gameObject.GetComponent<PlayerManager> ().CheckAttackZone ();
@@ -107,7 +107,7 @@ public class Active_snake : MonoBehaviour
 			Playerr [6].enabled = true;
 			break;
 
-		case 41:
+		case 7:
 			if (!Playarea.instt.IsPlayerOnSafeZone (Playerr [7].gameObject.GetComponent<PlayerManager> ().Position)) {
 				Playerr [7].gameObject.GetComponent<PlayerManager> ().CheckAttackZone ();
 			}
